@@ -1,4 +1,4 @@
-import { Button, Image } from "@chakra-ui/react";
+import { Image } from "@chakra-ui/react";
 import * as S from "./Header.styled";
 import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../../layouts/CartContext";

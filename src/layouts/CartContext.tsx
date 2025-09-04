@@ -4,14 +4,14 @@ import React, {
   useState,
   ReactNode,
   useEffect,
+  useCallback,
 } from "react";
 import { ProductInCart } from "../types";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 type CartContextType = {
   /** Продукты в корзине */
   products: ProductInCart[];
-  /** Перезаписать содержание корзины */
-  setProducts: React.Dispatch<React.SetStateAction<ProductInCart[]>>;
   /** Добавить в корзину */
   addProduct: (item: ProductInCart) => void;
   /** Удалить из корзины */
@@ -26,34 +26,47 @@ const STORAGE_KEY = "cart_products";
 
 /** Провайдер контекста корзины. Позволяет на любом уровне читать и управлять содержанием корзины. */
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [products, setProducts] = useState<ProductInCart[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? (JSON.parse(stored) as ProductInCart[]) : [];
-    }
-    return [];
-  });
+  const [products, setProducts] = useLocalStorage<ProductInCart[]>(
+    STORAGE_KEY,
+    []
+  );
 
   // Сохраняем в localStorage при каждом изменении
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
   }, [products]);
 
-  const addProduct = (item: ProductInCart) => {
-    setProducts((prev) => [...prev, item]);
-  };
-  const removeProduct = (item: ProductInCart) => {
-    setProducts((prev) =>
-      prev.filter((product) => product.cartId !== item.cartId)
-    );
-  };
-  const clearCart = () => {
-    setProducts([]);
-  };
+  /** Функция добавления товара в корзину */
+  const addProduct = useCallback(
+    (item: ProductInCart) => {
+      setProducts((prev) => {
+        /** Есть ли товар в корзине */
+        const exists = prev.find((p) => p.cartId === item.cartId);
+        if (exists) {
+          return prev; // или обновить количество, если нужно
+        }
+        return [...prev, item];
+      });
+    },
+    [setProducts]
+  );
 
+  /** Функция удаления одного продукта из корзины  */
+  const removeProduct = useCallback(
+    (item: ProductInCart) => {
+      setProducts((prev) => prev.filter((p) => p.cartId !== item.cartId));
+    },
+    [setProducts]
+  );
+
+  /**Функция для удаления корзины */
+  const clearCart = useCallback(() => {
+    setProducts([]);
+  }, [setProducts]);
+  
   return (
     <CartContext.Provider
-      value={{ products, setProducts, addProduct, clearCart, removeProduct }}
+      value={{ products, addProduct, clearCart, removeProduct }}
     >
       {children}
     </CartContext.Provider>

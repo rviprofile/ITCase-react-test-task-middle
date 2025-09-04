@@ -4,12 +4,6 @@ export const ProductContainer = styled.div`
   padding: 25px 150px;
   display: flex;
   gap: 50px;
-  img.main {
-    max-height: 450px;
-    min-height: 450px;
-    min-width: 250px;
-    border-radius: 15px;
-  }
 `;
 
 export const ProductContent = styled.div`
@@ -72,9 +66,4 @@ export const Price = styled.p`
   &:after {
     content: " ₽";
   }
-`;
-export const Gallery = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 `;

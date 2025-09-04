@@ -1,18 +1,24 @@
+import { Button } from "@chakra-ui/react";
 import { CartItem } from "../../components/CartItem/CartItem";
-import { ProductCard } from "../../components/ProductCard/ProductCard";
 import { useCart } from "../../layouts/CartContext";
 import * as S from "./CartPage.styled";
 
 export const CartPage = () => {
-  const { products } = useCart();
+  const { products, clearCart } = useCart();
+  const isCartEmpty = products.length === 0;
   return (
     <S.CartContainer>
-      {products.length > 0 ? (
+      {!isCartEmpty ? (
         products.map((product) => {
-          return <CartItem product={product} />;
+          return <CartItem key={product.cartId} product={product} />;
         })
       ) : (
         <S.EmptyMessage>ПУСТО</S.EmptyMessage>
+      )}
+      {!isCartEmpty && (
+        <Button onClick={clearCart} size={"xl"} width={450}>
+          Очистить корзину
+        </Button>
       )}
     </S.CartContainer>
   );
