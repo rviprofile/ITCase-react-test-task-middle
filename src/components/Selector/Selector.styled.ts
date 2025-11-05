@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Button, Image } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
 
 export const Selector = styled.div`
   display: flex;

@@ -1,5 +1,4 @@
 import styled from "@emotion/styled";
-import { Card } from "@chakra-ui/react";
 
 export const CardContainer = styled.div`
   background-color: #48494f9a;

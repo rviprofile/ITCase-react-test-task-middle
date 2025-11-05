@@ -1,6 +1,6 @@
 import * as S from "./ItemPage.styled";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getProduct, getSizes } from "../../services/api";
 import { Color, Product, Size } from "../../types";
 import { useEffect, useMemo, useState } from "react";
@@ -14,10 +14,9 @@ export const ProductPage = () => {
   /** id товара в URL */
   const { id } = useParams();
   const { products, addProduct } = useCart();
-  const navigate = useNavigate();
 
   /** API-запросы */
-  const { data: product, isFetched } = useQuery<Product>({
+  const { data: product } = useQuery<Product>({
     queryKey: ["product", id],
     queryFn: () => getProduct(Number(id)) as Promise<Product>,
   });
