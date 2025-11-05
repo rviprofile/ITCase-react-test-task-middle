@@ -5,6 +5,7 @@ import React, {
   ReactNode,
   useEffect,
   useCallback,
+  useMemo,
 } from "react";
 import { ProductInCart } from "../types";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -20,7 +21,7 @@ type CartContextType = {
   clearCart: () => void;
 };
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+const CartContext = createContext<CartContextType | null>(null);
 
 const STORAGE_KEY = "cart_products";
 
@@ -31,17 +32,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     []
   );
 
-  // Сохраняем в localStorage при каждом изменении
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-  }, [products]);
-
   /** Функция добавления товара в корзину */
   const addProduct = useCallback(
     (item: ProductInCart) => {
       setProducts((prev) => {
         /** Есть ли товар в корзине */
-        const exists = prev.find((p) => p.cartId === item.cartId);
+        const exists = prev.some((p) => p.cartId === item.cartId);
         if (exists) {
           return prev; // или обновить количество, если нужно
         }
@@ -63,14 +59,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const clearCart = useCallback(() => {
     setProducts([]);
   }, [setProducts]);
-  
-  return (
-    <CartContext.Provider
-      value={{ products, addProduct, clearCart, removeProduct }}
-    >
-      {children}
-    </CartContext.Provider>
+
+  /** Мемоизация объекта контекста, чтобы не вызывать перерендеры всех потомков */
+  const value = useMemo(
+    () => ({ products, addProduct, removeProduct, clearCart }),
+    [products, addProduct, removeProduct, clearCart]
   );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 export const useCart = () => {

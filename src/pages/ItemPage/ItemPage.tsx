@@ -1,6 +1,6 @@
 import * as S from "./ItemPage.styled";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getProduct, getSizes } from "../../services/api";
 import { Color, Product, Size } from "../../types";
 import { useEffect, useMemo, useState } from "react";
@@ -14,9 +14,10 @@ export const ProductPage = () => {
   /** id товара в URL */
   const { id } = useParams();
   const { products, addProduct } = useCart();
+  const navigate = useNavigate();
 
   /** API-запросы */
-  const { data: product } = useQuery<Product>({
+  const { data: product, isFetched } = useQuery<Product>({
     queryKey: ["product", id],
     queryFn: () => getProduct(Number(id)) as Promise<Product>,
   });
@@ -33,40 +34,39 @@ export const ProductPage = () => {
   /** Автовыбор первого цвета при загрузке продукта */
   useEffect(() => {
     if (product) {
-      setSelectedColor(product.colors[0]);
+      setSelectedColor(product?.colors?.length ? product.colors[0] : undefined);
     }
   }, [product]);
 
   /** Сброс размера, если он недоступен для нового цвета */
   useEffect(() => {
-    if (selectedSize && !selectedColor?.sizes.includes(selectedSize.id)) {
+    if (selectedSize && !selectedColor?.sizes?.includes(selectedSize.id)) {
       setSelectedSize(undefined);
     }
   }, [selectedColor, selectedSize]);
 
   /** Id товара для корзины */
-  const cartId = useMemo(
-    () => `${id}-${selectedColor?.id}-${selectedSize?.id}`,
-    [id, selectedColor, selectedSize]
-  );
+  const cartId = useMemo(() => {
+    if (!id || !selectedColor || !selectedSize) return null;
+    return `${id}-${selectedColor.id}-${selectedSize.id}`;
+  }, [id, selectedColor, selectedSize]);
 
   /** Флаг: товар уже в корзине */
   const inCart = useMemo(
-    () => products.some((item) => item.cartId === cartId),
+    () => (cartId ? products.some((item) => item.cartId === cartId) : false),
     [products, cartId]
   );
 
   /** Обработчик добавления в корзину */
   const handleAddToCart = () => {
-    if (product && selectedColor && selectedSize) {
-      addProduct({
-        id: Number(id),
-        cartId,
-        name: product.name,
-        color: selectedColor,
-        size: selectedSize,
-      });
-    }
+    if (!product || !selectedColor || !selectedSize || !cartId) return;
+    addProduct({
+      id: Number(id),
+      cartId,
+      name: product.name,
+      color: selectedColor,
+      size: selectedSize,
+    });
   };
 
   return (

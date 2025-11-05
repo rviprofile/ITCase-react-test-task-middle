@@ -9,6 +9,8 @@ export const CatalogPage = () => {
   const { data } = useQuery({
     queryKey: ["catalog"],
     queryFn: () => getProducts(),
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 
   return (
